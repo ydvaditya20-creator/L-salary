@@ -23,18 +23,17 @@ h3 { margin-top:30px; }
 
   <br><br>
   <input type="password" id="adminPass" placeholder="Admin Password to Refresh Data">
-  <button onclick="clearLocalStorage()">Refresh Data</button>
+  <button onclick="refreshData()">Refresh Data</button>
 
   <div id="result"></div>
 </div>
 
 <script>
-// Replace with your deployed Apps Script Web App URL
-const API_URL = "https://script.google.com/macros/s/AKfycbyTW2NCtQBRyXUVnirE3nsUhZ7Sx4TqbcPqyArFYNhfN_OxULFrT-BS4iZCKngLCPQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyTW2NCtQBRyXUVnirE3nsUhZ7Sx4TqbcPqyArFYNhfN_OxULFrT-BS4iZCKngLCPQ/exec"; // Replace with your Web App URL
 
 let allEmployees = [];
 
-// On page load: fetch all data if not in localStorage
+// Load all data on page load from localStorage or fetch
 window.addEventListener('load', () => {
   const cached = localStorage.getItem('allEmployees');
   if(cached){
@@ -44,22 +43,23 @@ window.addEventListener('load', () => {
   }
 });
 
+// JSONP fetch all data
 function fetchAllData() {
   document.getElementById('result').innerHTML = "<p>Loading data, please wait...</p>";
-  fetch(`${API_URL}?all=true`)
-    .then(res => res.json())
-    .then(data => {
-      if(!data) data = [];
-      allEmployees = data;
-      localStorage.setItem('allEmployees', JSON.stringify(allEmployees));
-      document.getElementById('result').innerHTML = "<p>Data loaded! Enter Member Code above.</p>";
-    })
-    .catch(err => {
-      console.error("Failed to fetch:", err);
-      document.getElementById('result').innerHTML = "<p>Error loading data. Check console.</p>";
-    });
+  const script = document.createElement('script');
+  script.src = `${API_URL}?all=true&callback=handleData`;
+  document.body.appendChild(script);
 }
 
+// JSONP callback
+function handleData(data){
+  if(!data) data = [];
+  allEmployees = data;
+  localStorage.setItem('allEmployees', JSON.stringify(allEmployees));
+  document.getElementById('result').innerHTML = "<p>Data loaded! Enter Member Code above.</p>";
+}
+
+// Show employee data
 function searchData() {
   const code = document.getElementById("memberCode").value.trim();
   if(!code) return alert("Enter Member Code");
@@ -94,8 +94,8 @@ function searchData() {
   document.getElementById("result").innerHTML = html;
 }
 
-// Admin refresh with password
-function clearLocalStorage() {
+// Admin refresh
+function refreshData() {
   const pass = document.getElementById('adminPass').value;
   if(pass !== 'admin123') return alert("Wrong password!");
   localStorage.removeItem('allEmployees');
