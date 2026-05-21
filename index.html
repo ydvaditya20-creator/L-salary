@@ -18,60 +18,65 @@ h3 { margin-top:30px; }
 <div class="container">
   <h2>Employee Salary Portal</h2>
   
-  <!-- Login -->
   <input type="text" id="memberCode" placeholder="Enter Member Code">
   <button onclick="searchData()">View Salary Detail</button>
 
   <br><br>
-  <input type="password" id="adminPass" placeholder="Enter Admin Password to Refresh Data">
+  <input type="password" id="adminPass" placeholder="Admin Password to Refresh Data">
   <button onclick="clearLocalStorage()">Refresh Data</button>
 
   <div id="result"></div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyTW2NCtQBRyXUVnirE3nsUhZ7Sx4TqbcPqyArFYNhfN_OxULFrT-BS4iZCKngLCPQ/exec"; // Your deployed Apps Script Web App URL
+// Replace with your deployed Apps Script Web App URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyTW2NCtQBRyXUVnirE3nsUhZ7Sx4TqbcPqyArFYNhfN_OxULFrT-BS4iZCKngLCPQ/exec";
 
-// On page load: fetch all sheet data if not in localStorage
+let allEmployees = [];
+
+// On page load: fetch all data if not in localStorage
 window.addEventListener('load', () => {
-  if(!localStorage.getItem('allEmployees')) {
+  const cached = localStorage.getItem('allEmployees');
+  if(cached){
+    allEmployees = JSON.parse(cached);
+  } else {
     fetchAllData();
   }
 });
 
 function fetchAllData() {
   document.getElementById('result').innerHTML = "<p>Loading data, please wait...</p>";
-  fetch(`${API_URL}?all=true`) // You can modify Apps Script to return all rows when all=true
+  fetch(`${API_URL}?all=true`)
     .then(res => res.json())
     .then(data => {
-      if(data) {
-        localStorage.setItem('allEmployees', JSON.stringify(data));
-        document.getElementById('result').innerHTML = "<p>Data loaded! Enter Member Code above.</p>";
-      }
+      if(!data) data = [];
+      allEmployees = data;
+      localStorage.setItem('allEmployees', JSON.stringify(allEmployees));
+      document.getElementById('result').innerHTML = "<p>Data loaded! Enter Member Code above.</p>";
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+      console.error("Failed to fetch:", err);
+      document.getElementById('result').innerHTML = "<p>Error loading data. Check console.</p>";
+    });
 }
 
-// Show individual employee
 function searchData() {
   const code = document.getElementById("memberCode").value.trim();
   if(!code) return alert("Enter Member Code");
 
-  const allData = JSON.parse(localStorage.getItem('allEmployees') || '{}');
-  const data = allData.find(emp => emp['Member Code'] === code);
-
+  const data = allEmployees.find(emp => emp['Member Code'] === code);
   if(!data) {
     document.getElementById("result").innerHTML = "<h3>No Record Found</h3>";
     return;
   }
 
   const headers = Object.keys(data);
-  const staffCols = headers.slice(0,10);
-  const salaryCols = headers.slice(10,17);
-  const deductionCols = headers.slice(17,20);
-  const paymentCols = headers.slice(20,24);
+  const staffCols = headers.slice(0,10);      // A-J
+  const salaryCols = headers.slice(10,17);    // K-Q
+  const deductionCols = headers.slice(17,20); // R-T
+  const paymentCols = headers.slice(20,24);   // U-X
 
-  function buildTable(title, cols) {
+  function buildTable(title, cols){
     let html = `<h3>${title}</h3><table><tr>`;
     cols.forEach(key => html += `<th>${key}</th>`);
     html += `</tr><tr>`;
@@ -89,7 +94,7 @@ function searchData() {
   document.getElementById("result").innerHTML = html;
 }
 
-// Clear localStorage and fetch fresh data
+// Admin refresh with password
 function clearLocalStorage() {
   const pass = document.getElementById('adminPass').value;
   if(pass !== 'admin123') return alert("Wrong password!");
