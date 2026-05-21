@@ -1,106 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<title>Employee Salary Portal</title>
-<style>
-body { font-family: Arial; background:#f4f4f4; padding:30px; }
-.container { max-width:900px; margin:auto; background:white; padding:25px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
-input { width:100%; padding:12px; margin:10px 0; }
-button { padding:12px 20px; background:#0066cc; color:white; border:none; cursor:pointer; margin:5px 0; }
-table { width:100%; margin-top:20px; border-collapse:collapse; }
-table td, table th { border:1px solid #ccc; padding:8px; text-align:left; }
-h3 { margin-top:30px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff & Salary Data</title>
+    <!-- Bootstrap CSS Styling के लिए -->
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow-x: auto; }
+        .loading { font-size: 1.2rem; text-align: center; padding: 20px; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Employee Salary Portal</h2>
-  
-  <input type="text" id="memberCode" placeholder="Enter Member Code">
-  <button onclick="searchData()">View Salary Detail</button>
-
-  <br><br>
-  <input type="password" id="adminPass" placeholder="Admin Password to Refresh Data">
-  <button onclick="refreshData()">Refresh Data</button>
-
-  <div id="result"></div>
+<div class="container-fluid">
+    <h2 class="mb-4 text-center">Staff Details & Salary Report</h2>
+    
+    <div class="table-container">
+        <div id="loader" class="loading">डेटा लोड हो रहा है, कृपया प्रतीक्षा करें...</div>
+        <table class="table table-bordered table-striped d-none" id="dataTable">
+            <thead class="table-dark" id="tableHeader">
+                <!-- हेडर यहाँ आटोमेटिक जेनरेट होंगे -->
+            </thead>
+            <tbody id="tableBody">
+                <!-- डेटा यहाँ आटोमेटिक जेनरेट होगा -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyTW2NCtQBRyXUVnirE3nsUhZ7Sx4TqbcPqyArFYNhfN_OxULFrT-BS4iZCKngLCPQ/exec"; // Replace with your Web App URL
+    // यहाँ अपना स्टेप 1 से मिला Google Apps Script Web App URL डालें
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwJYnbYUK0iP_Qk11BJDdjLbtl9dAsO0zOoHKU6JJZdGM3a6ViaO8O2xGbJ3fBrnRmC/exec";
 
-let allEmployees = [];
+    async function fetchData() {
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const data = await response.json();
+            
+            if (data.length === 0) {
+                document.getElementById('loader').innerText = "कोई डेटा नहीं मिला।";
+                return;
+            }
 
-// Load all data on page load from localStorage or fetch
-window.addEventListener('load', () => {
-  const cached = localStorage.getItem('allEmployees');
-  if(cached){
-    allEmployees = JSON.parse(cached);
-  } else {
-    fetchAllData();
-  }
-});
+            // टेबल हेडर्स बनाना
+            const headers = Object.keys(data[0]);
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.innerText = header;
+                headerRow.appendChild(th);
+            });
+            document.getElementById('tableHeader').appendChild(headerRow);
 
-// JSONP fetch all data
-function fetchAllData() {
-  document.getElementById('result').innerHTML = "<p>Loading data, please wait...</p>";
-  const script = document.createElement('script');
-  script.src = `${API_URL}?all=true&callback=handleData`;
-  document.body.appendChild(script);
-}
+            // टेबल रोज़ (Rows) बनाना
+            const tableBody = document.getElementById('tableBody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.innerText = row[header] !== undefined ? row[header] : "";
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
 
-// JSONP callback
-function handleData(data){
-  if(!data) data = [];
-  allEmployees = data;
-  localStorage.setItem('allEmployees', JSON.stringify(allEmployees));
-  document.getElementById('result').innerHTML = "<p>Data loaded! Enter Member Code above.</p>";
-}
+            // लोडर छुपाएं और टेबल दिखाएं
+            document.getElementById('loader').classList.add('d-none');
+            document.getElementById('dataTable').classList.remove('d-none');
 
-// Show employee data
-function searchData() {
-  const code = document.getElementById("memberCode").value.trim();
-  if(!code) return alert("Enter Member Code");
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            document.getElementById('loader').innerText = "डेटा लोड करने में त्रुटि हुई। कृपया URL और अनुमतियां जांचें।";
+        }
+    }
 
-  const data = allEmployees.find(emp => emp['Member Code'] === code);
-  if(!data) {
-    document.getElementById("result").innerHTML = "<h3>No Record Found</h3>";
-    return;
-  }
-
-  const headers = Object.keys(data);
-  const staffCols = headers.slice(0,10);      // A-J
-  const salaryCols = headers.slice(10,17);    // K-Q
-  const deductionCols = headers.slice(17,20); // R-T
-  const paymentCols = headers.slice(20,24);   // U-X
-
-  function buildTable(title, cols){
-    let html = `<h3>${title}</h3><table><tr>`;
-    cols.forEach(key => html += `<th>${key}</th>`);
-    html += `</tr><tr>`;
-    cols.forEach(key => html += `<td>${data[key]}</td>`);
-    html += `</tr></table>`;
-    return html;
-  }
-
-  let html = "";
-  html += buildTable("Staff Detail (A-J)", staffCols);
-  html += buildTable("Salary Detail (K-Q)", salaryCols);
-  html += buildTable("Deduction Detail (R-T)", deductionCols);
-  html += buildTable("Payment Detail (U-X)", paymentCols);
-
-  document.getElementById("result").innerHTML = html;
-}
-
-// Admin refresh
-function refreshData() {
-  const pass = document.getElementById('adminPass').value;
-  if(pass !== 'admin123') return alert("Wrong password!");
-  localStorage.removeItem('allEmployees');
-  fetchAllData();
-}
+    // पेज लोड होने पर फंक्शन चलाएं
+    window.onload = fetchData;
 </script>
 
 </body>
