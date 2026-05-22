@@ -218,4 +218,21 @@
         document.getElementById('d-present').innerText = emp["Total Present Days"] ?? 0;
         document.getElementById('d-extra').innerText = emp["Extra working days"] ?? 0;
         document.getElementById('d-total-work').innerText = emp["Total Working Days"] ?? 0;
+        document.getElementById('d-monthly-sal').innerText = emp["Monthly Salary Session 2026-2027"] ?? 0;document.getElementById('d-inc').innerText = emp["Salary Increment Amount from April.26"] || "-";document.getElementById('d-final-sal').innerText = emp["Final Monthly Salary from April.26"] ?? 0;document.getElementById('d-gross').innerText = emp["Gross Salary after Leave Deduction"] ?? 0;
+        // SECTION 3: Deduction Details (R-T)
+        document.getElementById('d-pf').innerText = emp["April.26 PF Amount"] ?? 0;document.getElementById('d-tds').innerText = emp["Other Recover/Deposits/TDS"] ?? 0;document.getElementById('d-total-deduct').innerText = emp["Total Deduction Amount"] ?? 0;
+        // SECTION 4: Payout & Recovery Details (U-X)
+        document.getElementById('d-due').innerText = emp["Salary Due for Payment"] ?? 0;
+        document.getElementById('d-bank').innerText = emp["Monthly Salary for Payment (Bank)"] || "-";
+        document.getElementById('d-cash').innerText = emp["Monthly Salary for Payment Non CBSE (Cash)"] ?? 0;
+        document.getElementById('d-advance').innerText = emp["Salary Advance Payment Recovery Amount"] || "-";}
+    function showError(message) {
+        const errorMsg = document.getElementById('error-msg');
+        errorMsg.innerText = message;errorMsg.classList.remove('hidden');
+    }
+    function logout() {
+        document.getElementById('membercode-input').value = '';
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('login-box').classList.remove('hidden');
+    }
     
