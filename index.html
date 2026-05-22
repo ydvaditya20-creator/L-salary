@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -66,9 +65,9 @@
                         <th>Department (E)</th>
                         <th>Branch (F)</th>
                         <th>Position (G)</th>
-                        <th>Monthly No. Working Days (H)</th>
-                        <th>Leave detail in Month (I)</th>
-                        <th>Leave Taken by EMP. (J)</th>
+                        <th>Monthly Salary 2026-27 (N)</th>
+                        <th>Salary Increment Amt (O)</th>
+                        <th>Final Monthly Salary (P)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,9 +79,10 @@
                         <td id="d-dept"></td>
                         <td id="d-branch"></td>
                         <td id="d-pos"></td>
-                        <td id="d-m-days"></td>
-                        <td id="d-l-detail"></td>
-                        <td id="d-l-taken"></td>
+                        <td>₹<span id="d-monthly-sal"></span></td>
+                        <td><span id="d-inc"></span></td>
+                        <td>₹<span id="d-final-sal"></span></td>
+                        
                     </tr>
                 </tbody>
             </table>
@@ -94,23 +94,25 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Monthly No. Working Days (H)</th>
+                        <th>Leave detail in Month (I)</th>
+                        <th>Leave Taken by EMP. (J)</th>
                         <th>Total Present Days (K)</th>
                         <th>Extra Working Days (L)</th>
                         <th>Total Working Days (M)</th>
-                        <th>Monthly Salary 2026-27 (N)</th>
-                        <th>Salary Increment Amt (O)</th>
-                        <th>Final Monthly Salary (P)</th>
+                        
                         <th>Gross Salary After Deduction (Q)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td id="d-m-days"></td>
+                        <td id="d-l-detail"></td>
+                        <td id="d-l-taken"></td>
                         <td id="d-present"></td>
                         <td id="d-extra"></td>
                         <td id="d-total-work"></td>
-                        <td>₹<span id="d-monthly-sal"></span></td>
-                        <td><span id="d-inc"></span></td>
-                        <td>₹<span id="d-final-sal"></span></td>
+                        
                         <td>₹<span id="d-gross"></span></td>
                     </tr>
                 </tbody>
@@ -221,15 +223,8 @@ document.getElementById('d-inc').innerText = emp["Salary Increment Amount from A
 document.getElementById('d-final-sal').innerText = emp["Final Monthly Salary from April.26"] !== undefined ? emp["Final Monthly Salary from April.26"] : 0;
 document.getElementById('d-gross').innerText = emp["Gross Salary after Leave Deduction"] !== undefined ? emp["Gross Salary after Leave Deduction"] : 0;
 // SECTION 3: Deduction Details (R-T)
-document.getElementById('d-pf').innerText = emp["April.26 PF Amount"] !== undefined ? emp["April.26 PF Amount"] : 0;
-        document.getElementById('d-tds').innerText = emp["Other Recover/Deposits/TDS"] !== undefined ? emp["Other Recover/Deposits/TDS"] : 0;
-        document.getElementById('d-total-deduct').innerText = emp["Total Deduction Amount"] !== undefined ? emp["Total Deduction Amount"] : 0;
+document.getElementById('d-pf').innerText = emp["April.26 PF Amount"] !== undefined ? emp["April.26 PF Amount"] : 0;document.getElementById('d-tds').innerText = emp["Other Recover/Deposits/TDS"] !== undefined ? emp["Other Recover/Deposits/TDS"] : 0;document.getElementById('d-total-deduct').innerText = emp["Total Deduction Amount"] !== undefined ? emp["Total Deduction Amount"] : 0;
 // SECTION 4: Payout & Recovery Details (U-X)
-document.getElementById('d-due').innerText = emp["Salary Due for Payment"] !== undefined ? emp["Salary Due for Payment"] : 0;
-        document.getElementById('d-bank').innerText = emp["Monthly Salary for Payment (Bank)"] || "-";
-        document.getElementById('d-cash').innerText = emp["Monthly Salary for Payment Non CBSE (Cash)"] !== undefined ? emp["Monthly Salary for Payment Non CBSE (Cash)"] : 0;
-        document.getElementById('d-advance').innerText = emp["Salary Advance Payment Recovery Amount"] || "-";}
-    function showError(message) {const errorMsg = document.getElementById('error-msg');errorMsg.innerText = message;errorMsg.classList.remove('hidden');}
-    function logout() {document.getElementById('membercode-input').value = '';document.getElementById('dashboard').classList.add('hidden');document.getElementById('login-box').classList.remove('hidden');}
+document.getElementById('d-due').innerText = emp["Salary Due for Payment"] !== undefined ? emp["Salary Due for Payment"] : 0;document.getElementById('d-bank').innerText = emp["Monthly Salary for Payment (Bank)"] || "-";document.getElementById('d-cash').innerText = emp["Monthly Salary for Payment Non CBSE (Cash)"] !== undefined ? emp["Monthly Salary for Payment Non CBSE (Cash)"] : 0;document.getElementById('d-advance').innerText = emp["Salary Advance Payment Recovery Amount"] || "-";}function showError(message) {const errorMsg = document.getElementById('error-msg');errorMsg.innerText = message;errorMsg.classList.remove('hidden');}function logout() {document.getElementById('membercode-input').value = '';document.getElementById('dashboard').classList.add('hidden');document.getElementById('login-box').classList.remove('hidden');}
 </script>
     </html>
