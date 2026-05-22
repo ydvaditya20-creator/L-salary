@@ -3,82 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff & Salary Data</title>
-    <!-- Bootstrap CSS Styling के लिए -->
+    <title>Employee Smart Portal</title>
+    <!-- Bootstrap CSS Styling -->
     <link href="https://jsdelivr.net" rel="stylesheet">
     <style>
-        body { padding: 20px; background-color: #f8f9fa; }
-        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow-x: auto; }
-        .loading { font-size: 1.2rem; text-align: center; padding: 20px; }
+        body { background-color: #f0f2f5; padding: 20px; font-family: sans-serif; }
+        .card-custom { max-width: 480px; margin: 60px auto; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); background: white; }
+        .dashboard-container { max-width: 800px; margin: 20px auto; }
+        .section-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .section-title { border-bottom: 2px solid #0d6efd; padding-bottom: 8px; margin-bottom: 15px; color: #0d6efd; font-weight: bold; }
+        .field-box { padding: 10px 0; border-bottom: 1px solid #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
+        .field-title { color: #6c757d; font-weight: 500; font-size: 0.95rem; }
+        .field-value { color: #212529; font-weight: 600; text-align: right; }
+        .admin-btn { position: fixed; bottom: 15px; right: 15px; z-index: 1000; opacity: 0.7; }
+        .admin-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <h2 class="mb-4 text-center">Staff Details & Salary Report</h2>
-    
-    <div class="table-container">
-        <div id="loader" class="loading">डेटा लोड हो रहा है, कृपया प्रतीक्षा करें...</div>
-        <table class="table table-bordered table-striped d-none" id="dataTable">
-            <thead class="table-dark" id="tableHeader">
-                <!-- हेडर यहाँ आटोमेटिक जेनरेट होंगे -->
-            </thead>
-            <tbody id="tableBody">
-                <!-- डेटा यहाँ आटोमेटिक जेनरेट होगा -->
-            </tbody>
-        </table>
+<div class="container">
+    <!-- 1. लॉगिन स्क्रीन -->
+    <div id="loginScreen" class="card-custom">
+        <h3 class="text-center mb-4 font-weight-bold text-primary">स्टाफ लॉगिन</h3>
+        <div class="mb-3">
+            <label for="memberCodeInput" class="form-label">Member Code दर्ज करें:</label>
+            <input type="text" id="memberCodeInput" class="form-control form-control-lg" placeholder="उदा. N-SHEM1230">
+        </div>
+        <button id="loginBtn" class="btn btn-primary btn-lg w-100" onclick="handleLogin()">विवरण देखें</button>
+        <div id="loginError" class="text-danger mt-3 text-center small fw-bold"></div>
+    </div>
+
+    <!-- 2. कर्मचारी डैशबोर्ड स्क्रीन -->
+    <div id="dataScreen" class="d-none dashboard-container">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-3 shadow-sm">
+            <div>
+                <span class="text-muted small">लॉगिन यूजर</span>
+                <h5 id="welcomeUser" class="mb-0 text-dark fw-bold">-</h5>
+            </div>
+            <button class="btn btn-outline-danger btn-sm px-3" onclick="logout()">लॉगआउट</button>
+        </div>
+        
+        <div class="text-muted small mb-3 text-end" id="statusMessage"></div>
+
+        <!-- विभाग 1: स्टाफ विवरण -->
+        <div class="section-card">
+            <h5 class="section-title">👤 Staff Detail</h5>
+            <div id="staffFields"></div>
+        </div>
+
+        <!-- विभाग 2: सैलरी विवरण -->
+        <div class="section-card">
+            <h5 class="section-title">💰 Salary Detail</h5>
+            <div id="salaryFields"></div>
+        </div>
+
+        <!-- विभाग 3: कटौती विवरण -->
+        <div class="section-card">
+            <h5 class="section-title">🛑 Deduction Detail</h5>
+            <div id="deductionFields"></div>
+        </div>
+
+        <!-- विभाग 4: रिकवरी विवरण -->
+        <div class="section-card">
+            <h5 class="section-title">🔄 Recovery Detail</h5>
+            <div id="recoveryFields"></div>
+        </div>
     </div>
 </div>
 
+<!-- एडमिन बटन (फ्लोटिंग) -->
+<button class="btn btn-secondary btn-sm admin-btn" onclick="triggerAdminSync()">⚙️ Sheet Sync</button>
+
 <script>
-    // यहाँ अपना स्टेप 1 से मिला Google Apps Script Web App URL डालें
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwJYnbYUK0iP_Qk11BJDdjLbtl9dAsO0zOoHKU6JJZdGM3a6ViaO8O2xGbJ3fBrnRmC/exec";
+    // आपका सटीक GitHub डेटा URL
+    const DATA_URL = "https://github.io/data.json";
+    
+    // !!! यहाँ अपना नया Google Apps Script Web App URL पेस्ट करें !!!
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLB2zmMMqdLc-yGxtmVWr2S5MYswXkF7BeoKjXFNw0Iizf188ZoZieg3gNL3hMixW_/exec"; 
 
-    async function fetchData() {
+    // आपकी गूगल शीट के अनुसार सटीक हेडर की (Key)
+    const MEMBER_CODE_KEY = "Member Code";
+
+    // आपकी शीट के कॉलम हेडर्स के आधार पर ऑटो-कैटेगराइजेशन रूल
+    const FILTER_KEYWORDS = {
+        staff: [
+            "status", "member code", "member name", "department", 
+            "branch", "position", "session"
+        ],
+        salary: [
+            "increment", "final monthly", "working", "present", 
+            "extra", "gross salary after"
+        ],
+        deduction: [
+            "leave detail", "leave taken", "pf amount", 
+            "other recover/deposits", "total deduction"
+        ],
+        recovery: [
+            "due for payment", "payment (bank)", 
+            "payment non", "advance payment"
+        ]
+    };
+
+    window.onload = function() {
+        checkSession();
+    };
+
+    // लॉगिन प्रोसेस
+    async function handleLogin() {
+        const inputCode = document.getElementById('memberCodeInput').value.trim();
+        const errorDiv = document.getElementById('loginError');
+
+        if (!inputCode) {
+            errorDiv.innerText = "कृपया Member Code डालें।";
+            return;
+        }
+
+        // 1. लोकल स्टोरेज (फ़ास्ट लोडिंग चेक)
+        const cachedData = localStorage.getItem('user_cache_' + inputCode);
+        if (cachedData) {
+            sessionStorage.setItem('current_user_code', inputCode);
+            showUserData(JSON.parse(cachedData), "लोकल स्टोरेज (Instant)");
+            return;
+        }
+
+        // 2. गिटहब क्लाउड से लाइव डेटा फ़ेच करना
         try {
-            const response = await fetch(WEB_APP_URL);
-            const data = await response.json();
-            
-            if (data.length === 0) {
-                document.getElementById('loader').innerText = "कोई डेटा नहीं मिला।";
-                return;
+            errorDiv.innerText = "डेटा खोजा जा रहा है...";
+            const response = await fetch(DATA_URL + "?v=" + new Date().getTime());
+            const dataArray = await response.json();
+
+            // यूजर कोड मैच करना
+            const userRecord = dataArray.find(row => String(row[MEMBER_CODE_KEY]).trim() === inputCode);
+
+            if (userRecord) {
+                localStorage.setItem('user_cache_' + inputCode, JSON.stringify(userRecord));
+                sessionStorage.setItem('current_user_code', inputCode);
+                showUserData(userRecord, "गिटहब क्लाउड");
+                errorDiv.innerText = "";
+            } else {
+                errorDiv.innerText = "गलत Member Code! कोई रिकॉर्ड नहीं मिला।";
             }
-
-            // टेबल हेडर्स बनाना
-            const headers = Object.keys(data[0]);
-            const headerRow = document.createElement('tr');
-            headers.forEach(header => {
-                const th = document.createElement('th');
-                th.innerText = header;
-                headerRow.appendChild(th);
-            });
-            document.getElementById('tableHeader').appendChild(headerRow);
-
-            // टेबल रोज़ (Rows) बनाना
-            const tableBody = document.getElementById('tableBody');
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                headers.forEach(header => {
-                    const td = document.createElement('td');
-                    td.innerText = row[header] !== undefined ? row[header] : "";
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
-            });
-
-            // लोडर छुपाएं और टेबल दिखाएं
-            document.getElementById('loader').classList.add('d-none');
-            document.getElementById('dataTable').classList.remove('d-none');
-
         } catch (error) {
-            console.error("Error fetching data:", error);
-            document.getElementById('loader').innerText = "डेटा लोड करने में त्रुटि हुई। कृपया URL और अनुमतियां जांचें।";
+            console.error(error);
+            errorDiv.innerText = "डेटा लोड करने में समस्या आई। कृपया इंटरनेट जांचें।";
         }
     }
 
-    // पेज लोड होने पर फंक्शन चलाएं
-    window.onload = fetchData;
-</script>
+    // डेटा को केटेगरी के अनुसार अलग-अलग बॉक्स में दिखाना
+    function showUserData(record, sourceInfo) {
+        document.getElementById('loginScreen').classList.add('d-none');
+        document.getElementById('dataScreen').classList.remove('d-none');
+        
+        // वेलकम नाम सेट करना
+        document.getElementById('welcomeUser').innerText = record["Member Name"] || record["member name"] || sessionStorage.getItem('current_user_code');
+        document.getElementById('statusMessage').innerText = `डेटा मोड: ${sourceInfo}`;
+        
+        // पुराने फ़ील्ड्स को साफ़ करना
+        const containers = {
+            staff: document.getElementById('staffFields'),
+            salary: document.getElementById('salaryFields'),
+            deduction: document.getElementById('deductionFields'),
+            recovery: document.getElementById('recoveryFields')
+        };
+        Object.values(containers).forEach(c => c.innerHTML = "");
 
-</body>
-</html>
+        // लूप चलाकर सभी कॉलम को सही डिब्बे में बांटना
+        Object.keys(record).forEach(key => {
+            if (record[key] === undefined || record[key] === "") return;
+
+            const box = document.createElement('div');
+            box.className = "field-box";
+            box.innerHTML = `<span class="field-title">${key}</span> <span class="field-value">${record[key]}</span>`;
+
+            const cleanKey = key.toLowerCase();
+            let matched = false;
+
+            // कीवर्ड के आधार पर सही केटेगरी का चुनाव
+            for (const [category, keywords] of Object.entries(FILTER_KEYWORDS)) {
+                if (keywords.some(keyword => cleanKey.includes(keyword))) {
+                    containers[category].appendChild(box);
+                    matched = true;
+                    break;
+                }
+            }
+
+            // अगर कोई कीवर्ड मैच न हो तो डिफ़ॉल्ट रूप से Staff Detail में डालें
+            if (!matched) {
+                containers['staff'].appendChild(box);
+            }
+        });
+    }
+
+    // एडमिन द्वारा सीधे वेबसाइट से गूगल शीट डेटा सिंक करना
+    async function triggerAdminSync() {
+        const password = prompt("डेटा सिंक करने के लिए एडमिन पासवर्ड दर्ज करें:");
+        if (password === "admin123") {
+            if (APPS_SCRIPT_WEB_APP_URL.includes("यहाँ_अपना_APPS_SCRIPT")) {
+                alert("कृपया पहले कोड में अपना असली Google Apps Script Web App URL डालें!");
+                return;
+            }
+            alert("गूगल शीट सिंक शुरू हो गया है। इसमें 10-15 सेकंड लग सकते हैं। कृपया 'OK' दबाकर प्रतीक्षा करें...");
+            try {
+                const response = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?action=update`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    localStorage.clear(); // पुराना कैश साफ़ करें ताकि यूज़र्स को तुरंत नया डेटा दिखे
+                    alert("🎉 बधाई हो! गूगल शीट का नया डेटा सफ़लतापूर्वक सिंक हो गया है। कृपया लॉगिन करके देखें।");
+                    logout();
+                } else {
+                    alert("सिंक फ़ेल हुआ: " + result.message);
+                }
+            } catch (e) {
+                alert("सिंक के दौरान एरर आया। कृपया सुनिश्चित करें कि आपने नया Apps Script Web App Deploy किया है और URL सही है।");
+            }
+        } else if (password !== null) {
+            alert("गलत पासवर्ड!");
+        }
+    }
+
+    // सेशन ऑटो-लोड चेक
+    function checkSession() {
+        const currentCode = sessionStorage.getItem('current_user_code');
+        if (currentCode) {
+            const cachedData = localStorage.getItem('user_cache_' + currentCode);
+            if (cachedData) {
+                showUserData(JSON.parse(cachedData), "ऑटो-लोड (Session)");
+            }
+        }
+    }
+// लॉगआउट
+function logout() {
+  sessionStorage.removeItem('current_user_code');
+  document.getElementById('dataScreen').classList.add('d-none');
+  document.getElementById('loginScreen').classList.remove('d-none');
+  document.getElementById('memberCodeInput').value = "";
+  
+}
