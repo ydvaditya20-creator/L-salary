@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,9 +26,8 @@
         th, td { padding: 10px 12px; border: 1px solid #dee2e6; text-align: center; font-size: 13px; }
         th { background-color: #f8f9fa; color: #495057; font-weight: 600; }
         
-        .logout-btn { background: #6c757d; width: auto; padding: 10px 20px; float: right; }
+        .logout-btn { background: #6c757d; width: auto; padding: 10px 20px; }
         .logout-btn:hover { background: #5a6268; }
-        .clearfix::after { content: ""; clear: both; display: table; }
     </style>
 </head>
 <body>
@@ -45,7 +43,7 @@
     </div>
 
     <!-- Dashboard Section -->
-    <div id="dashboard" class="hidden class-clearfix">
+    <div id="dashboard" class="hidden">
         <div class="welcome-header">
             <div>
                 <h2 style="margin: 0; color: #007bff;" id="user-name"></h2>
@@ -159,12 +157,11 @@
                         <td><span id="d-advance"></span></td>
                     </tr>
                 </tbody>
-            </tbody>
             </table>
         </div>
     </div>
 </div>
-
+</body>
 <script>
     async function loginUser() {
         const inputCode = document.getElementById('membercode-input').value.trim();
@@ -181,7 +178,7 @@
             const employees = await response.json();
 
             // Member Code case-insensitive check
-            const emp = employees.find(e => e["Member Code"].toLowerCase() === inputCode.toLowerCase());
+            const emp = employees.find(e => e["Member Code"] && e["Member Code"].toString().toLowerCase() === inputCode.toLowerCase());
 
             if (emp) {
                 showDashboard(emp);
@@ -199,40 +196,39 @@
         document.getElementById('dashboard').classList.remove('hidden');
 
         // Header
-        document.getElementById('user-name').innerText = emp["Member Name"];
-        document.getElementById('user-code').innerText = "Code: " + emp["Member Code"];
+        document.getElementById('user-name').innerText = emp["Member Name"] || "-";
+        document.getElementById('user-code').innerText = "Code: " + (emp["Member Code"] || "-");
 
         // SECTION 1: Staff Details (A-J)
-        document.getElementById('d-sl').innerText = emp["SL N0."] ?? "-";
-        document.getElementById('d-status').innerText = emp["Status"] ?? "-";
-        document.getElementById('d-mcode').innerText = emp["Member Code"] ?? "-";
-        document.getElementById('d-mname').innerText = emp["Member Name"] ?? "-";
-        document.getElementById('d-dept').innerText = emp["Department"] ?? "-";
-        document.getElementById('d-branch').innerText = emp["Branch"] ?? "-";
-        document.getElementById('d-pos').innerText = emp["Position"] ?? "-";
-        document.getElementById('d-m-days').innerText = emp["Monthly No.of Working days"] ?? 0;
-        document.getElementById('d-l-detail').innerText = emp["Leave detail in Month"] ?? 0;
-        document.getElementById('d-l-taken').innerText = emp["Leave Taken by EMP."] ?? 0;
+        document.getElementById('d-sl').innerText = emp["SL N0."] !== undefined ? emp["SL N0."] : "-";
+        document.getElementById('d-status').innerText = emp["Status"] || "-";
+        document.getElementById('d-mcode').innerText = emp["Member Code"] || "-";
+        document.getElementById('d-mname').innerText = emp["Member Name"] || "-";
+        document.getElementById('d-dept').innerText = emp["Department"] || "-";
+        document.getElementById('d-branch').innerText = emp["Branch"] || "-";
+        document.getElementById('d-pos').innerText = emp["Position"] || "-";
+        document.getElementById('d-m-days').innerText = emp["Monthly No.of Working days"] !== undefined ? emp["Monthly No.of Working days"] : 0;
+        document.getElementById('d-l-detail').innerText = emp["Leave detail in Month"] !== undefined ? emp["Leave detail in Month"] : 0;
+        document.getElementById('d-l-taken').innerText = emp["Leave Taken by EMP."] !== undefined ? emp["Leave Taken by EMP."] : 0;
 
         // SECTION 2: Salary Details (K-Q)
-        document.getElementById('d-present').innerText = emp["Total Present Days"] ?? 0;
-        document.getElementById('d-extra').innerText = emp["Extra working days"] ?? 0;
-        document.getElementById('d-total-work').innerText = emp["Total Working Days"] ?? 0;
-        document.getElementById('d-monthly-sal').innerText = emp["Monthly Salary Session 2026-2027"] ?? 0;document.getElementById('d-inc').innerText = emp["Salary Increment Amount from April.26"] || "-";document.getElementById('d-final-sal').innerText = emp["Final Monthly Salary from April.26"] ?? 0;document.getElementById('d-gross').innerText = emp["Gross Salary after Leave Deduction"] ?? 0;
-        // SECTION 3: Deduction Details (R-T)
-        document.getElementById('d-pf').innerText = emp["April.26 PF Amount"] ?? 0;document.getElementById('d-tds').innerText = emp["Other Recover/Deposits/TDS"] ?? 0;document.getElementById('d-total-deduct').innerText = emp["Total Deduction Amount"] ?? 0;
-        // SECTION 4: Payout & Recovery Details (U-X)
-        document.getElementById('d-due').innerText = emp["Salary Due for Payment"] ?? 0;
+        document.getElementById('d-present').innerText = emp["Total Present Days"] !== undefined ? emp["Total Present Days"] : 0;
+document.getElementById('d-extra').innerText = emp["Extra working days"] !== undefined ? emp["Extra working days"] : 0;
+document.getElementById('d-total-work').innerText = emp["Total Working Days"] !== undefined ? emp["Total Working Days"] : 0;
+document.getElementById('d-monthly-sal').innerText = emp["Monthly Salary Session 2026-2027"] !== undefined ? emp["Monthly Salary Session 2026-2027"] : 0;
+document.getElementById('d-inc').innerText = emp["Salary Increment Amount from April.26"] || "-";
+document.getElementById('d-final-sal').innerText = emp["Final Monthly Salary from April.26"] !== undefined ? emp["Final Monthly Salary from April.26"] : 0;
+document.getElementById('d-gross').innerText = emp["Gross Salary after Leave Deduction"] !== undefined ? emp["Gross Salary after Leave Deduction"] : 0;
+// SECTION 3: Deduction Details (R-T)
+document.getElementById('d-pf').innerText = emp["April.26 PF Amount"] !== undefined ? emp["April.26 PF Amount"] : 0;
+        document.getElementById('d-tds').innerText = emp["Other Recover/Deposits/TDS"] !== undefined ? emp["Other Recover/Deposits/TDS"] : 0;
+        document.getElementById('d-total-deduct').innerText = emp["Total Deduction Amount"] !== undefined ? emp["Total Deduction Amount"] : 0;
+// SECTION 4: Payout & Recovery Details (U-X)
+document.getElementById('d-due').innerText = emp["Salary Due for Payment"] !== undefined ? emp["Salary Due for Payment"] : 0;
         document.getElementById('d-bank').innerText = emp["Monthly Salary for Payment (Bank)"] || "-";
-        document.getElementById('d-cash').innerText = emp["Monthly Salary for Payment Non CBSE (Cash)"] ?? 0;
+        document.getElementById('d-cash').innerText = emp["Monthly Salary for Payment Non CBSE (Cash)"] !== undefined ? emp["Monthly Salary for Payment Non CBSE (Cash)"] : 0;
         document.getElementById('d-advance').innerText = emp["Salary Advance Payment Recovery Amount"] || "-";}
-    function showError(message) {
-        const errorMsg = document.getElementById('error-msg');
-        errorMsg.innerText = message;errorMsg.classList.remove('hidden');
-    }
-    function logout() {
-        document.getElementById('membercode-input').value = '';
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('login-box').classList.remove('hidden');
-    }
-    
+    function showError(message) {const errorMsg = document.getElementById('error-msg');errorMsg.innerText = message;errorMsg.classList.remove('hidden');}
+    function logout() {document.getElementById('membercode-input').value = '';document.getElementById('dashboard').classList.add('hidden');document.getElementById('login-box').classList.remove('hidden');}
+</script>
+    </html>
